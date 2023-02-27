@@ -1,0 +1,91 @@
+FROM debian:11.6-slim 
+
+EXPOSE 80
+
+ENV DRUPAL_ROOT=/opt/www/drupal
+ENV DRUPAL_WEB_ROOT=${DRUPAL_ROOT}/web
+ENV DRUPAL_PRIVATE_FILESYSTEM=/opt/drupal_private_filesystems/d8/default
+ENV DRUPAL_PUBLIC_FILESYSTEM=${DRUPAL_WEB_ROOT}/sites/default/files
+ENV DRUPAL_ISLANDORA_DATA=/opt/islandora_data
+
+ENV DRUPAL_DB_NAME=drupal
+ENV DRUPAL_DB_USER=drupal
+ENV DRUPAL_DB_PASSWORD=drupal
+ENV DRUPAL_TRUSTED_HOSTS='["drupal","localhost"]'
+ENV POSTGRES_HOST=db
+ENV MEMCACHED_HOST=memcached
+ENV MEMCACHED_PORT=11211
+ENV SOLR_HOST=solr
+ENV SOLR_USERNAME=drupal
+ENV SOLR_PASSWORD=drupal
+ENV JWT_KEY_TYPE=RS256
+ENV JWT_KEY_FILE="/var/run/secrets/crayfish.key"
+ENV IIIF_URL=http://cantaloupe/iiif/2
+ENV IIIF_INGRESS_URL=http://drupal/iiif/2
+ENV ACTIVEMQ_HOST=activemq
+ENV ACTIVEMQ_STOMP_PORT=61613
+ENV CONFIG_SPLITS='{\
+  "prod": true,\
+  "dev": false,\
+}'
+# File location may differ if using file based secrets.
+ENV FLYSYSTEM_CONFIG_FILE=${DRUPAL_WEB_ROOT}/sites/default/flysystem_config.json
+ENV CLAMAV_HOST=clamav
+ENV CLAMAV_PORT=3310
+
+
+RUN apt-get -qqy update \
+  && apt-get -qqy --no-install-recommends install \
+     ca-certificates curl git patch openssh-client openssl sudo unzip wget \
+     postgresql-client-13 postgresql-client-common \
+     imagemagick poppler-utils \
+     apache2 apache2-utils php php-common php-dev libapache2-mod-php \
+     php-ctype php-curl php-fileinfo php-gd php-iconv php-json \
+     php-mbstring php-pgsql php-phar php-pdo \
+     php-simplexml php-tokenizer php-xml php-zip \
+     php-memcached libmemcached-tools \
+  && apt-get clean
+
+#--------------------------------------------------------------
+# setup PHP
+COPY dgi_99-config.ini /etc/php/7.4/dgi/conf.d/99-config.ini
+RUN ln -s /etc/php/7.4/dgi/99-config.ini /etc/php/7.4/apache2/conf.d/99-config.ini \
+  && ln -s /etc/php/7.4/dgi/99-config.ini /etc/php/7.4/cli/conf.d/99-config.ini
+
+# setup apache2
+#RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf \
+RUN echo 'ErrorLog /dev/stderr' >> /etc/apache2/apache2.conf \
+  && echo 'TransferLog /dev/stdout' >> /etc/apache2/apache2.conf \
+  && echo 'CustomLog /dev/stdout combined' >> /etc/apache2/apache2.conf \
+  && chown -R www-data /var/log/apache2
+
+# disable and enable sites
+RUN a2dissite default-ssl.conf \
+  && a2dissite 000-default.conf
+
+COPY 25-80-dgi.conf /etc/apache2/sites-available/
+RUN a2ensite 25-80-dgi.conf
+
+# enable apache2 modules and sites
+RUN a2enmod rewrite \
+  && a2enmod ssl \
+  && a2enmod proxy_http \
+  && a2enmod headers 
+
+# setup volumes
+RUN mkdir -p ${DRUPAL_ISLANDORA_DATA}/repo-meta \
+  && chown -R www-data:www-data ${DRUPAL_ISLANDORA_DATA} \
+  && mkdir -p ${DRUPAL_PRIVATE_FILESYSTEM} \
+  && chown -R www-data:www-data ${DRUPAL_PRIVATE_FILESYSTEM} \
+  && chmod -R 770 ${DRUPAL_PRIVATE_FILESYSTEM} \
+  && mkdir -p ${DRUPAL_PUBLIC_FILESYSTEM} \
+  && chown www-data:www-data ${DRUPAL_PUBLIC_FILESYSTEM}
+
+VOLUME ["${DRUPAL_ISLANDORA_DATA}", "${DRUPAL_PRIVATE_FILESYSTEM}", "${DRUPAL_PUBLIC_FILESYSTEM}"]
+#--------------------------------------------------------------
+
+USER root 
+
+WORKDIR ${DRUPAL_ROOT}
+
+CMD ["/usr/sbin/apachectl", "-D", "FOREGROUND"]
