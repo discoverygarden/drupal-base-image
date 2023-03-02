@@ -49,8 +49,8 @@ RUN apt-get -qqy update \
 #--------------------------------------------------------------
 # setup PHP
 COPY dgi_99-config.ini /etc/php/7.4/dgi/conf.d/99-config.ini
-RUN ln -s /etc/php/7.4/dgi/99-config.ini /etc/php/7.4/apache2/conf.d/99-config.ini \
-  && ln -s /etc/php/7.4/dgi/99-config.ini /etc/php/7.4/cli/conf.d/99-config.ini
+RUN ln -s /etc/php/7.4/dgi/conf.d/99-config.ini /etc/php/7.4/apache2/conf.d/99-config.ini \
+  && ln -s /etc/php/7.4/dgi/conf.d/99-config.ini /etc/php/7.4/cli/conf.d/99-config.ini
 
 # setup apache2
 #RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf \
