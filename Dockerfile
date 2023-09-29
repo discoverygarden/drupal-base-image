@@ -48,6 +48,7 @@ RUN apt-get -qqy update \
      php-mbstring php-pgsql php-phar php-pdo \
      php-simplexml php-tokenizer php-xml php-zip \
      php-memcached libmemcached-tools \
+     php-intl \
   && apt-get clean
 
 #--------------------------------------------------------------
