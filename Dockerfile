@@ -1,4 +1,4 @@
-FROM debian:11.7-slim
+FROM debian:12-slim
 
 EXPOSE 80
 
@@ -38,24 +38,29 @@ ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
 
-RUN apt-get -qqy update \
+RUN \
+  --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt \
+  apt-get -qqy update \
   && apt-get -qqy --no-install-recommends install \
      ca-certificates curl git patch openssh-client openssl sudo unzip wget \
-     postgresql-client-13 postgresql-client-common \
+     postgresql-client postgresql-client-common \
      imagemagick poppler-utils \
      apache2 apache2-utils php php-common php-dev libapache2-mod-php \
      php-ctype php-curl php-fileinfo php-gd php-iconv php-json \
      php-mbstring php-pgsql php-phar php-pdo \
      php-simplexml php-tokenizer php-xml php-zip \
      php-memcached libmemcached-tools \
-     php-intl \
-  && apt-get clean
+     php-intl
 
 #--------------------------------------------------------------
 # setup PHP
-COPY dgi_99-config.ini /etc/php/7.4/dgi/conf.d/99-config.ini
-RUN ln -s /etc/php/7.4/dgi/conf.d/99-config.ini /etc/php/7.4/apache2/conf.d/99-config.ini \
-  && ln -s /etc/php/7.4/dgi/conf.d/99-config.ini /etc/php/7.4/cli/conf.d/99-config.ini
+ENV PHP_INI_DIR=/etc/php/8.2
+WORKDIR $PHP_INI_DIR
+COPY --link dgi_99-config.ini dgi/conf.d/99-config.ini
+RUN ln -s $PHP_INI_DIR/dgi/conf.d/99-config.ini apache2/conf.d/99-config.ini \
+  && ln -s $PHP_INI_DIR/dgi/conf.d/99-config.ini cli/conf.d/99-config.ini
+# Back out to the original WORKDIR.
+WORKDIR /
 
 # setup apache2
 #RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf \
@@ -68,14 +73,14 @@ RUN echo 'ErrorLog /dev/stderr' >> /etc/apache2/apache2.conf \
 RUN a2dissite default-ssl.conf \
   && a2dissite 000-default.conf
 
-COPY 25-80-dgi.conf /etc/apache2/sites-available/
+COPY --link 25-80-dgi.conf /etc/apache2/sites-available/
 RUN a2ensite 25-80-dgi.conf
 
 # enable apache2 modules and sites
 RUN a2enmod rewrite \
   && a2enmod ssl \
   && a2enmod proxy_http \
-  && a2enmod headers 
+  && a2enmod headers
 
 # setup volumes
 RUN mkdir -p ${DRUPAL_ISLANDORA_DATA}/repo-meta \
@@ -89,7 +94,7 @@ RUN mkdir -p ${DRUPAL_ISLANDORA_DATA}/repo-meta \
 VOLUME ["${DRUPAL_ISLANDORA_DATA}", "${DRUPAL_PRIVATE_FILESYSTEM}", "${DRUPAL_PUBLIC_FILESYSTEM}"]
 #--------------------------------------------------------------
 
-USER root 
+USER root
 
 WORKDIR ${DRUPAL_ROOT}
 
