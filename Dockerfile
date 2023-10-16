@@ -37,11 +37,10 @@ ENV CLAMAV_PORT=3310
 ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
-
 RUN \
-  --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt \
-  apt-get -qqy update \
-  && apt-get -qqy --no-install-recommends install \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists \
+  --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives \
+  apt-get -qqy update && apt-get -qqy --no-install-recommends install \
      ca-certificates curl git patch openssh-client openssl sudo unzip wget \
      postgresql-client postgresql-client-common \
      imagemagick poppler-utils \
