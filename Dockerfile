@@ -1,5 +1,8 @@
 FROM debian:12-slim
 
+ARG TARGETARCH
+ARG TARGETVARIANT
+
 EXPOSE 80
 
 ENV DRUPAL_ROOT=/opt/www/drupal
@@ -38,8 +41,8 @@ ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
 RUN \
-  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists \
-  --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
+  --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
   apt-get -qqy update && apt-get -qqy --no-install-recommends install \
      ca-certificates curl git patch openssh-client openssl sudo unzip wget \
      postgresql-client postgresql-client-common \
