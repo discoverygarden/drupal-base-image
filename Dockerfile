@@ -43,16 +43,20 @@ ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 RUN \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
   --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
-  apt-get -qqy update && apt-get -qqy --no-install-recommends install \
-     ca-certificates curl git patch openssh-client openssl sudo unzip wget \
-     postgresql-client postgresql-client-common \
-     imagemagick poppler-utils \
-     apache2 apache2-utils php php-common php-dev libapache2-mod-php \
-     php-ctype php-curl php-fileinfo php-gd php-iconv php-json \
-     php-mbstring php-pgsql php-phar php-pdo \
-     php-simplexml php-tokenizer php-xml php-zip \
-     php-memcached libmemcached-tools \
-     php-intl php-apcu
+<<EOS
+set -e
+apt-get -qqy update
+DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
+  ca-certificates curl git patch openssh-client openssl sudo unzip wget \
+  postgresql-client postgresql-client-common \
+  imagemagick poppler-utils \
+  apache2 apache2-utils php php-common php-dev libapache2-mod-php \
+  php-ctype php-curl php-fileinfo php-gd php-iconv php-json \
+  php-mbstring php-pgsql php-phar php-pdo \
+  php-simplexml php-tokenizer php-xml php-zip \
+  php-memcached libmemcached-tools \
+  php-intl php-apcu
+EOS
 
 #--------------------------------------------------------------
 # setup PHP
