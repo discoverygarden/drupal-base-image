@@ -79,8 +79,10 @@ RUN echo 'ErrorLog /dev/stderr' >> /etc/apache2/apache2.conf \
 RUN a2dissite default-ssl.conf \
   && a2dissite 000-default.conf
 
-COPY --link 25-80-dgi.conf /etc/apache2/sites-available/
+COPY --link rootfs/etc/apache2/sites-available/25-80-dgi.conf /etc/apache2/sites-available/
 RUN a2ensite 25-80-dgi.conf
+
+COPY --link rootfs/etc/ImageMagick-6/policy.xml /etc/ImageMagick-6/policy.xml
 
 # enable apache2 modules and sites
 RUN a2enmod rewrite \
