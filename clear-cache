@@ -1,0 +1,4 @@
+#!/bin/bash
+
+drush cr
+drush ev 'drupal_flush_all_caches();'

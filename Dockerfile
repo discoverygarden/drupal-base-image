@@ -40,6 +40,8 @@ ENV CLAMAV_PORT=3310
 ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
+COPY clear-cache /bin/clear-cache
+
 RUN \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
   --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
