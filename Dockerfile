@@ -104,6 +104,10 @@ RUN mkdir -p ${DRUPAL_ISLANDORA_DATA}/repo-meta \
 VOLUME ["${DRUPAL_ISLANDORA_DATA}", "${DRUPAL_PRIVATE_FILESYSTEM}", "${DRUPAL_PUBLIC_FILESYSTEM}"]
 #--------------------------------------------------------------
 
+# Migration sillyness
+RUN echo "* soft nofile -1" >> /etc/security/limits.conf
+RUN echo "* hard nofile -1" >> /etc/security/limits.conf
+
 USER root
 
 WORKDIR ${DRUPAL_ROOT}
