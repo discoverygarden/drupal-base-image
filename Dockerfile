@@ -71,13 +71,7 @@ RUN ln -s $PHP_INI_DIR/dgi/conf.d/99-config.ini apache2/conf.d/99-config.ini \
 WORKDIR /
 
 # setup apache2
-COPY <<EOCONF /etc/apache2/conf-available/logging.conf
-#ServerName localhost
-ErrorLog /dev/stderr
-TransferLog /dev/stdout
-CustomLog /dev/stdout combined
-LogFormat "%{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
-EOCONF
+COPY --link rootfs/etc/apache2/conf-available/logging.conf /etc/apache2/conf-available/logging.conf
 
 RUN <<EOS
 a2enconf logging.conf
