@@ -76,6 +76,7 @@ COPY <<EOCONF /etc/apache2/conf-available/logging.conf
 ErrorLog /dev/stderr
 TransferLog /dev/stdout
 CustomLog /dev/stdout combined
+LogFormat "%{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\"" combined
 EOCONF
 
 RUN <<EOS
