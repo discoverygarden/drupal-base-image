@@ -80,7 +80,7 @@ LogFormat "%{X-Forwarded-For}i %h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{Use
 EOCONF
 
 RUN <<EOS
-a2enconf logging
+a2enconf logging.conf
 chown -R www-data /var/log/apache2
 EOS
 
