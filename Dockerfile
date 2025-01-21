@@ -71,11 +71,17 @@ RUN ln -s $PHP_INI_DIR/dgi/conf.d/99-config.ini apache2/conf.d/99-config.ini \
 WORKDIR /
 
 # setup apache2
-#RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf \
-RUN echo 'ErrorLog /dev/stderr' >> /etc/apache2/apache2.conf \
-  && echo 'TransferLog /dev/stdout' >> /etc/apache2/apache2.conf \
-  && echo 'CustomLog /dev/stdout combined' >> /etc/apache2/apache2.conf \
-  && chown -R www-data /var/log/apache2
+COPY <<EOCONF /etc/apache2/conf-available/logging.conf
+#ServerName localhost
+ErrorLog /dev/stderr
+TransferLog /dev/stdout
+CustomLog /dev/stdout combined
+EOCONF
+
+RUN <<EOS
+a2enconf logging
+chown -R www-data /var/log/apache2
+EOS
 
 # disable and enable sites
 RUN a2dissite default-ssl.conf \
@@ -105,8 +111,10 @@ VOLUME ["${DRUPAL_ISLANDORA_DATA}", "${DRUPAL_PRIVATE_FILESYSTEM}", "${DRUPAL_PU
 #--------------------------------------------------------------
 
 # Migration sillyness
-RUN echo "* soft nofile -1" >> /etc/security/limits.conf
-RUN echo "* hard nofile -1" >> /etc/security/limits.conf
+COPY <<EOCONF /etc/security/limits.d/migration.conf
+* soft nofile -1
+* hard nofile -1
+EOCONF
 
 USER root
 
