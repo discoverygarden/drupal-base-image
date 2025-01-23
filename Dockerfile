@@ -73,7 +73,7 @@ WORKDIR /
 # setup apache2
 COPY --link rootfs/etc/apache2/conf-available/logging.conf /etc/apache2/conf-available/logging.conf
 COPY --link rootfs/etc/apache2/conf-available/remoteip.conf /etc/apache2/conf-available/remoteip.conf
-COPY --link rootfs/configs/apache-remoteip-internal-proxy.lst /configs/apache-remoteip-internal-proxy.lst
+COPY --link rootfs/etc/apache2/conf/remoteip/internal-proxy.lst /etc/apache2/conf/remoteip/internal-proxy.lst
 
 RUN <<EOS
 a2enconf logging.conf
