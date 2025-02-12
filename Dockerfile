@@ -72,12 +72,10 @@ WORKDIR /
 
 # setup apache2
 COPY --link rootfs/etc/apache2/conf-available/logging.conf /etc/apache2/conf-available/logging.conf
-COPY --link rootfs/etc/apache2/conf-available/remoteip.conf /etc/apache2/conf-available/remoteip.conf
-COPY --link rootfs/etc/apache2/conf/remoteip/internal-proxy.lst /etc/apache2/conf/remoteip/internal-proxy.lst
 
 RUN <<EOS
+set -e
 a2enconf logging.conf
-a2enconf remoteip.conf
 chown -R www-data /var/log/apache2
 EOS
 
@@ -94,8 +92,7 @@ COPY --link rootfs/etc/ImageMagick-6/policy.xml /etc/ImageMagick-6/policy.xml
 RUN a2enmod rewrite \
   && a2enmod ssl \
   && a2enmod proxy_http \
-  && a2enmod headers \
-  && a2enmod remoteip
+  && a2enmod headers
 
 # setup volumes
 RUN mkdir -p ${DRUPAL_ISLANDORA_DATA}/repo-meta \
