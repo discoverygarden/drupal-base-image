@@ -40,26 +40,41 @@ ENV CLAMAV_PORT=3310
 ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
+ENV DRUPAL_TRUSTED_HOSTS='["drupal","localhost"]'
+
+ENV PHP_VERSION=8.3
+
+
 RUN \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
   --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
 <<EOS
 set -e
+export DEBIAN_FRONTEND=noninteractive
 apt-get -qqy update
-DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
-  ca-certificates curl git patch openssh-client openssl sudo unzip wget \
-  postgresql-client postgresql-client-common \
-  imagemagick poppler-utils \
-  apache2 apache2-utils php php-common php-dev libapache2-mod-php \
-  php-ctype php-curl php-fileinfo php-gd php-iconv php-json \
-  php-mbstring php-pgsql php-phar php-pdo \
-  php-simplexml php-tokenizer php-xml php-zip \
-  php-memcached libmemcached-tools \
-  php-intl php-apcu
+apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests ca-certificates wget gnupg
+wget -qO /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ bookworm main" > /etc/apt/sources.list.d/php.list
+apt-get -qqy update
+apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
+  openssl \
+  postgresql-client \
+  postgresql-client-common \
+  apache2 \
+  libapache2-mod-php${PHP_VERSION} \
+  php${PHP_VERSION} \
+  php${PHP_VERSION}-pdo \
+  php${PHP_VERSION}-xml \
+  php${PHP_VERSION}-pgsql \
+  php${PHP_VERSION}-gd \
+  php${PHP_VERSION}-mbstring \
+  php${PHP_VERSION}-memcache \
+  sudo
+  # php${PHP_VERSION}-openssl \
+  # php${PHP_VERSION}-curl \
+  # apache2-utils \
 EOS
 
-#--------------------------------------------------------------
-# setup PHP
 ENV PHP_INI_DIR=/etc/php/8.3
 WORKDIR $PHP_INI_DIR
 COPY --link dgi_99-config.ini dgi/conf.d/99-config.ini
