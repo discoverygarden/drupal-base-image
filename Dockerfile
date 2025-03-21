@@ -60,10 +60,11 @@ EOS
 
 #--------------------------------------------------------------
 # setup PHP
-ENV PHP_INI_DIR=/etc/php/8.2
+ENV PHP_INI_DIR=/etc/php/8.3
 WORKDIR $PHP_INI_DIR
 COPY --link dgi_99-config.ini dgi/conf.d/99-config.ini
-RUN ln -s $PHP_INI_DIR/dgi/conf.d/99-config.ini apache2/conf.d/99-config.ini \
+RUN mkdir -p apache2/conf.d cli/conf.d \
+  && ln -s $PHP_INI_DIR/dgi/conf.d/99-config.ini apache2/conf.d/99-config.ini \
   && ln -s $PHP_INI_DIR/dgi/conf.d/99-config.ini cli/conf.d/99-config.ini
 # Back out to the original WORKDIR.
 WORKDIR /
