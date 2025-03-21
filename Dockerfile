@@ -95,7 +95,7 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
   php${PHP_VERSION}-apcu
 EOS
 
-ENV PHP_INI_DIR=/etc/php/8.3
+ENV PHP_INI_DIR=/etc/php/${PHP_VERSION}
 WORKDIR $PHP_INI_DIR
 COPY --link dgi_99-config.ini dgi/conf.d/99-config.ini
 RUN mkdir -p apache2/conf.d cli/conf.d \
