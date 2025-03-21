@@ -57,22 +57,42 @@ wget -qO /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/
 echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ bookworm main" > /etc/apt/sources.list.d/php.list
 apt-get -qqy update
 apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
+  ca-certificates \
+  curl \
+  git \
+  patch \
+  openssh-client \
   openssl \
+  sudo \
+  unzip \
+  wget \
   postgresql-client \
   postgresql-client-common \
+  imagemagick \
+  poppler-utils \
   apache2 \
+  apache2-utils \
   libapache2-mod-php${PHP_VERSION} \
   php${PHP_VERSION} \
-  php${PHP_VERSION}-pdo \
-  php${PHP_VERSION}-xml \
-  php${PHP_VERSION}-pgsql \
+  php${PHP_VERSION}-common \
+  php${PHP_VERSION}-dev \
+  php${PHP_VERSION}-ctype \
+  php${PHP_VERSION}-curl \
+  php${PHP_VERSION}-fileinfo \
   php${PHP_VERSION}-gd \
+  php${PHP_VERSION}-iconv \
   php${PHP_VERSION}-mbstring \
-  php${PHP_VERSION}-memcache \
-  sudo
-  # php${PHP_VERSION}-openssl \
-  # php${PHP_VERSION}-curl \
-  # apache2-utils \
+  php${PHP_VERSION}-pgsql \
+  php${PHP_VERSION}-phar \
+  php${PHP_VERSION}-pdo \
+  php${PHP_VERSION}-simplexml \
+  php${PHP_VERSION}-tokenizer \
+  php${PHP_VERSION}-xml \
+  php${PHP_VERSION}-zip \
+  php${PHP_VERSION}-memcached \
+  libmemcached-tools \
+  php${PHP_VERSION}-intl \
+  php${PHP_VERSION}-apcu
 EOS
 
 ENV PHP_INI_DIR=/etc/php/8.3
