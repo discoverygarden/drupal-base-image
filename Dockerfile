@@ -40,7 +40,6 @@ ENV CLAMAV_PORT=3310
 ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
-ENV DRUPAL_TRUSTED_HOSTS='["drupal","localhost"]'
 
 ENV PHP_VERSION=8.3
 
