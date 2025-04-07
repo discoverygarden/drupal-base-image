@@ -57,7 +57,9 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-co
   php-mbstring php-pgsql php-phar php-pdo \
   php-simplexml php-tokenizer php-xml php-zip \
   php-memcached libmemcached-tools \
-  php-intl php-apcu
+  php-intl php-apcu \
+  gh
+
 EOS
 
 #--------------------------------------------------------------
