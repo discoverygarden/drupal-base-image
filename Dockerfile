@@ -40,9 +40,9 @@ ENV CLAMAV_PORT=3310
 ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
-
 ENV PHP_VERSION=8.3
 
+COPY clear-cache /bin/clear-cache
 
 RUN \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
@@ -92,6 +92,8 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
   libmemcached-tools \
   php${PHP_VERSION}-intl \
   php${PHP_VERSION}-apcu
+  gh
+
 EOS
 
 ENV PHP_INI_DIR=/etc/php/$PHP_VERSION
@@ -103,11 +105,13 @@ RUN ln -s ${DGI_PHP_INI} ${PHP_INI_DIR}/apache2/conf.d/99-config.ini \
 WORKDIR /
 
 # setup apache2
-#RUN echo 'ServerName localhost' >> /etc/apache2/apache2.conf \
-RUN echo 'ErrorLog /dev/stderr' >> /etc/apache2/apache2.conf \
-  && echo 'TransferLog /dev/stdout' >> /etc/apache2/apache2.conf \
-  && echo 'CustomLog /dev/stdout combined' >> /etc/apache2/apache2.conf \
-  && chown -R www-data /var/log/apache2
+COPY --link rootfs/etc/apache2/conf-available/logging.conf /etc/apache2/conf-available/logging.conf
+
+RUN <<EOS
+set -e
+a2enconf logging.conf
+chown -R www-data /var/log/apache2
+EOS
 
 # disable and enable sites
 RUN a2dissite default-ssl.conf \
@@ -137,8 +141,10 @@ VOLUME ["${DRUPAL_ISLANDORA_DATA}", "${DRUPAL_PRIVATE_FILESYSTEM}", "${DRUPAL_PU
 #--------------------------------------------------------------
 
 # Migration sillyness
-RUN echo "* soft nofile -1" >> /etc/security/limits.conf
-RUN echo "* hard nofile -1" >> /etc/security/limits.conf
+COPY <<EOCONF /etc/security/limits.d/migration.conf
+* soft nofile -1
+* hard nofile -1
+EOCONF
 
 USER root
 
