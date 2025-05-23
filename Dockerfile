@@ -44,17 +44,22 @@ ENV PHP_VERSION=8.3
 
 COPY clear-cache /bin/clear-cache
 
+# Use Dockerfile-native mechanisms for PHP repo setup
+RUN apt-get update && apt-get install -y wget ca-certificates gnupg
+RUN wget -O /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
+COPY --link <<EOF /etc/apt/sources.list.d/php.list
+deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ bookworm main
+EOF
+
 RUN \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
   --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
 <<EOS
 set -e
 export DEBIAN_FRONTEND=noninteractive
-apt-get -qqy update
+apt-get update
 apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests ca-certificates wget gnupg
-wget -qO /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
-echo "deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ bookworm main" > /etc/apt/sources.list.d/php.list
-apt-get -qqy update
+apt-get update
 apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
   ca-certificates \
   curl \
@@ -93,12 +98,13 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
   php${PHP_VERSION}-intl \
   php${PHP_VERSION}-apcu \
   gh
-
 EOS
 
 ENV PHP_INI_DIR=/etc/php/$PHP_VERSION
 ENV DGI_PHP_INI=/etc/php/dgi/99-config.ini
-COPY --link dgi_99-config.ini dgi/conf.d/99-config.ini
+
+# Use the DGI_PHP_INI variable directly for copying config
+COPY --link dgi_99-config.ini ${DGI_PHP_INI}
 RUN ln -s ${DGI_PHP_INI} ${PHP_INI_DIR}/apache2/conf.d/99-config.ini \
   && ln -s ${DGI_PHP_INI} ${PHP_INI_DIR}/cli/conf.d/99-config.ini
 # Back out to the original WORKDIR.
