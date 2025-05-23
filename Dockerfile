@@ -41,22 +41,29 @@ ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
 ENV PHP_VERSION=8.3
+ENV DEBIAN_FRONTEND=noninteractive
 
 COPY clear-cache /bin/clear-cache
 
 # Use Dockerfile-native mechanisms for PHP repo setup
-RUN apt-get update && apt-get install -y wget ca-certificates gnupg
-RUN wget -O /usr/share/keyrings/deb.sury.org-php.gpg https://packages.sury.org/php/apt.gpg
-COPY --link <<EOF /etc/apt/sources.list.d/php.list
-deb [signed-by=/usr/share/keyrings/deb.sury.org-php.gpg] https://packages.sury.org/php/ bookworm main
-EOF
+ADD --link https://packages.sury.org/debsuryorg-archive-keyring.deb /tmp/debsuryorg-archive-keyring.deb
+RUN dpkg -i /tmp/debsuryorg-archive-keyring.deb
+RUN \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
+  --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
+<<EOS
+set -e
+apt-get update
+apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests lsb-release ca-certificates
+echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
+apt-get update
+EOS
 
 RUN \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
   --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
 <<EOS
 set -e
-export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
   curl \
