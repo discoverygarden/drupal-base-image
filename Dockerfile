@@ -46,6 +46,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 COPY clear-cache /bin/clear-cache
 
 # Use Dockerfile-native mechanisms for PHP repo setup
+# Procedure adapted from https://packages.sury.org/php/README.txt
 ADD --link https://packages.sury.org/debsuryorg-archive-keyring.deb /tmp/debsuryorg-archive-keyring.deb
 RUN dpkg -i /tmp/debsuryorg-archive-keyring.deb
 RUN \
