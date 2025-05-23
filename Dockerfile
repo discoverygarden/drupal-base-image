@@ -61,7 +61,6 @@ apt-get update
 apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests ca-certificates wget gnupg
 apt-get update
 apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
-  ca-certificates \
   curl \
   git \
   patch \
@@ -69,7 +68,6 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
   openssl \
   sudo \
   unzip \
-  wget \
   postgresql-client \
   postgresql-client-common \
   imagemagick \
