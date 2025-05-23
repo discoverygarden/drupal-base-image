@@ -58,8 +58,6 @@ RUN \
 set -e
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests ca-certificates wget gnupg
-apt-get update
 apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
   curl \
   git \
