@@ -1,4 +1,12 @@
-FROM debian:12-slim
+ARG BUILD_DIR=/build
+ARG BASE_IMAGE=debian:12-slim
+
+FROM $BASE_IMAGE AS debsuryorg-key
+
+ARG BUILD_DIR
+ADD --link https://packages.sury.org/debsuryorg-archive-keyring.deb $BUILD_DIR/debsuryorg-archive-keyring.deb
+
+FROM $BASE_IMAGE
 
 ARG TARGETARCH
 ARG TARGETVARIANT
@@ -40,35 +48,79 @@ ENV CLAMAV_PORT=3310
 ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
+ENV PHP_VERSION=8.3
+ENV DEBIAN_FRONTEND=noninteractive
+
 COPY clear-cache /bin/clear-cache
+
+# Use Dockerfile-native mechanisms for PHP repo setup
+# Procedure adapted from https://packages.sury.org/php/README.txt
+ARG BUILD_DIR
+RUN \
+  --mount=type=bind,target=$BUILD_DIR,source=$BUILD_DIR,from=debsuryorg-key \
+  dpkg -i $BUILD_DIR/debsuryorg-archive-keyring.deb
+RUN \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
+  --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
+<<EOS
+set -e
+apt-get update
+apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests lsb-release ca-certificates
+echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
+apt-get update
+EOS
 
 RUN \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
   --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
 <<EOS
 set -e
-apt-get -qqy update
-DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
-  ca-certificates curl git patch openssh-client openssl sudo unzip wget \
-  postgresql-client postgresql-client-common \
-  imagemagick poppler-utils \
-  apache2 apache2-utils php php-common php-dev libapache2-mod-php \
-  php-ctype php-curl php-fileinfo php-gd php-iconv php-json \
-  php-mbstring php-pgsql php-phar php-pdo \
-  php-simplexml php-tokenizer php-xml php-zip \
-  php-memcached libmemcached-tools \
-  php-intl php-apcu php-soap \
+apt-get update
+apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
+  curl \
+  git \
+  patch \
+  openssh-client \
+  openssl \
+  sudo \
+  unzip \
+  postgresql-client \
+  postgresql-client-common \
+  imagemagick \
+  poppler-utils \
+  apache2 \
+  apache2-utils \
+  libapache2-mod-php${PHP_VERSION} \
+  php${PHP_VERSION} \
+  php${PHP_VERSION}-common \
+  php${PHP_VERSION}-dev \
+  php${PHP_VERSION}-ctype \
+  php${PHP_VERSION}-curl \
+  php${PHP_VERSION}-fileinfo \
+  php${PHP_VERSION}-gd \
+  php${PHP_VERSION}-iconv \
+  php${PHP_VERSION}-mbstring \
+  php${PHP_VERSION}-pgsql \
+  php${PHP_VERSION}-phar \
+  php${PHP_VERSION}-pdo \
+  php${PHP_VERSION}-simplexml \
+  php${PHP_VERSION}-tokenizer \
+  php${PHP_VERSION}-xml \
+  php${PHP_VERSION}-zip \
+  php${PHP_VERSION}-memcached \
+  libmemcached-tools \
+  php${PHP_VERSION}-intl \
+  php${PHP_VERSION}-apcu \
   gh
-
 EOS
 
-#--------------------------------------------------------------
-# setup PHP
-ENV PHP_INI_DIR=/etc/php/8.2
-WORKDIR $PHP_INI_DIR
-COPY --link dgi_99-config.ini dgi/conf.d/99-config.ini
-RUN ln -s $PHP_INI_DIR/dgi/conf.d/99-config.ini apache2/conf.d/99-config.ini \
-  && ln -s $PHP_INI_DIR/dgi/conf.d/99-config.ini cli/conf.d/99-config.ini
+ENV PHP_INI_DIR=/etc/php/$PHP_VERSION
+ENV DGI_PHP_INI=/etc/php/dgi/99-config.ini
+
+# Use the DGI_PHP_INI variable directly for copying config
+COPY --link dgi_99-config.ini ${DGI_PHP_INI}
+RUN ln -s ${DGI_PHP_INI} ${PHP_INI_DIR}/apache2/conf.d/99-config.ini \
+  && ln -s ${DGI_PHP_INI} ${PHP_INI_DIR}/cli/conf.d/99-config.ini
 # Back out to the original WORKDIR.
 WORKDIR /
 
