@@ -1,3 +1,5 @@
+ARG BUILD_DIR=/build
+
 FROM debian:12-slim
 
 ARG TARGETARCH
@@ -47,8 +49,9 @@ COPY clear-cache /bin/clear-cache
 
 # Use Dockerfile-native mechanisms for PHP repo setup
 # Procedure adapted from https://packages.sury.org/php/README.txt
-ADD --link https://packages.sury.org/debsuryorg-archive-keyring.deb /tmp/debsuryorg-archive-keyring.deb
-RUN dpkg -i /tmp/debsuryorg-archive-keyring.deb
+ARG BUILD_DIR
+ADD --link https://packages.sury.org/debsuryorg-archive-keyring.deb $BUILD_DIR/debsuryorg-archive-keyring.deb
+RUN dpkg -i $BUILD_DIR/debsuryorg-archive-keyring.deb
 RUN \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
   --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
