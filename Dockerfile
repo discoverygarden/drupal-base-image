@@ -111,7 +111,8 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
   libmemcached-tools \
   php${PHP_VERSION}-intl \
   php${PHP_VERSION}-apcu \
-  gh
+  gh \
+  yq
 EOS
 
 ENV PHP_INI_DIR=/etc/php/$PHP_VERSION
