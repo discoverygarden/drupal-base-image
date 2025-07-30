@@ -12,10 +12,6 @@ ARG TARGETARCH
 ARG TARGETVARIANT
 ARG TARGETOS
 
-# renovate: datasource=github-tags depName=mikefarah/yq
-ARG YQ_VERSION=v4.47.1
-ADD --chmod=555 https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_${TARGETOS}_${TARGETARCH} /usr/local/bin/yq
-
 EXPOSE 80
 
 ENV DRUPAL_ROOT=/opt/www/drupal
@@ -118,6 +114,10 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
   php${PHP_VERSION}-apcu \
   gh
 EOS
+
+# renovate: datasource=github-tags depName=mikefarah/yq
+ARG YQ_VERSION=v4.47.1
+ADD --chmod=555 https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_${TARGETOS}_${TARGETARCH} /usr/local/bin/yq
 
 ENV PHP_INI_DIR=/etc/php/$PHP_VERSION
 ENV DGI_PHP_INI=/etc/php/dgi/99-config.ini
