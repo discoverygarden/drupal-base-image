@@ -2,6 +2,7 @@ FROM debian:12-slim
 
 ARG TARGETARCH
 ARG TARGETVARIANT
+ARG TARGETOS
 
 EXPOSE 80
 
@@ -61,6 +62,9 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-co
   gh
 
 EOS
+
+ARG YQ_VERSION=v4.47.1
+ADD --chmod=555 https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_${TARGETOS}_${TARGETARCH} /usr/local/bin/yq
 
 #--------------------------------------------------------------
 # setup PHP
