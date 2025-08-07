@@ -10,7 +10,9 @@ on:
     # they should instead go via an additional workflow_call.
     tags: [ 'v[0-9]+.[0-9]+.[0-9]+' ]
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - v2
   workflow_call:
     inputs:
       tag:
