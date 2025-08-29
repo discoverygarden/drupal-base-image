@@ -39,7 +39,8 @@ ENV CLAMAV_PORT=3310
 
 # For configuration of islandora_hocr/the Solr Highlighting Plugin.
 ENV SOLR_HOME=/var/solr/data
-ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
+ENV SOLR_INSTALL=/opt/solr
+ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_INSTALL}/contrib/ocrhighlighting/lib
 
 COPY clear-cache /bin/clear-cache
 
