@@ -118,6 +118,7 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
   libmemcached-tools \
   php${PHP_VERSION}-intl \
   php${PHP_VERSION}-apcu \
+  php${PHP_VERSION}-soap \
   gh
 EOS
 
