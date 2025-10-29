@@ -1,3 +1,5 @@
+ARG BUILD_DIR=/build
+
 FROM debian:12-slim
 
 ARG TARGETARCH
@@ -42,6 +44,24 @@ ENV SOLR_HOCR_PLUGIN_PATH='${solr.hocr.plugin.path:/opt/solr_extra_lib/ocrhighli
 
 COPY clear-cache /bin/clear-cache
 
+ARG BUILD_DIR
+RUN install -d /usr/share/postgresql-common/pgdg/
+ADD --link --chmod=0555 \
+  --checksum=sha256:0144068502a1eddd2a0280ede10ef607d1ec592ce819940991203941564e8e76 \
+  https://www.postgresql.org/media/keys/ACCC4CF8.asc /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc 
+RUN \
+  --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
+  --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
+<<EOS
+set -e
+apt-get update
+apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests ca-certificates
+. /etc/os-release
+echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+apt-get update
+EOS
+
+
 RUN \
   --mount=type=cache,target=/var/lib/apt/lists,sharing=locked,id=debian-apt-lists-$TARGETARCH$TARGETVARIANT \
   --mount=type=cache,target=/var/cache/apt/archives,sharing=locked,id=debian-apt-archives-$TARGETARCH$TARGETVARIANT \
@@ -50,7 +70,7 @@ set -e
 apt-get -qqy update
 DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests \
   ca-certificates curl git patch openssh-client openssl sudo unzip wget \
-  postgresql-client postgresql-client-common \
+  postgresql-client-16 postgresql-client-common \
   imagemagick poppler-utils \
   apache2 apache2-utils php php-common php-dev libapache2-mod-php \
   php-ctype php-curl php-fileinfo php-gd php-iconv php-json \
