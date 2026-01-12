@@ -76,12 +76,13 @@ RUN ln -s $PHP_INI_DIR/dgi/conf.d/99-config.ini apache2/conf.d/99-config.ini \
 WORKDIR /
 
 # setup apache2
-COPY --link rootfs/etc/apache2/conf-available/logging.conf /etc/apache2/conf-available/logging.conf
+COPY --link rootfs/etc/apache2/conf-available/ /etc/apache2/conf-available/
 
 RUN <<EOS
 set -e
 a2enconf logging.conf
 chown -R www-data /var/log/apache2
+a2enconf request-limit.conf
 EOS
 
 # disable and enable sites
