@@ -49,7 +49,7 @@ ENV CLAMAV_PORT=3310
 ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
-ENV PHP_VERSION=8.3
+ENV PHP_VERSION=8.4
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY clear-cache /bin/clear-cache
