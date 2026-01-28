@@ -120,12 +120,19 @@ ARG YQ_VERSION=v4.50.1
 ADD --chmod=555 https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_${TARGETOS}_${TARGETARCH} /usr/local/bin/yq
 
 ENV PHP_INI_DIR=/etc/php/$PHP_VERSION
-ENV DGI_PHP_INI=/etc/php/dgi/99-config.ini
+ARG DGI_PHP_INI_PATH=/etc/php/dgi
+ENV DGI_PHP_INI_PATH=$DGI_PHP_INI_PATH
 
-# Use the DGI_PHP_INI variable directly for copying config
-COPY --link dgi_99-config.ini ${DGI_PHP_INI}
-RUN ln -s ${DGI_PHP_INI} ${PHP_INI_DIR}/apache2/conf.d/99-config.ini \
-  && ln -s ${DGI_PHP_INI} ${PHP_INI_DIR}/cli/conf.d/99-config.ini
+# Use the DGI_PHP_INI_PATH variable directly for copying config
+COPY --link rootfs${DGI_PHP_INI_PATH} ${DGI_PHP_INI_PATH}
+RUN <<EOS
+set -e
+for f in $(find ${DGI_PHP_INI_PATH} -type f -name "*.ini") ; do
+  BASENAME=$(basename $f)
+  ln -s $f ${PHP_INI_DIR}/apache2/conf.d/$BASENAME
+  ln -s $f ${PHP_INI_DIR}/cli/conf.d/$BASENAME
+done
+EOS
 # Back out to the original WORKDIR.
 WORKDIR /
 
