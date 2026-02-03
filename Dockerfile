@@ -120,19 +120,20 @@ ARG YQ_VERSION=v4.52.2
 ADD --chmod=555 https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_${TARGETOS}_${TARGETARCH} /usr/local/bin/yq
 
 ENV PHP_INI_DIR=/etc/php/$PHP_VERSION
-ARG DGI_PHP_INI_PATH=/etc/php/dgi
-ENV DGI_PHP_INI_PATH=$DGI_PHP_INI_PATH
 
-# Use the DGI_PHP_INI_PATH variable directly for copying config
-COPY --link rootfs${DGI_PHP_INI_PATH} ${DGI_PHP_INI_PATH}
-RUN <<EOS
-set -e
-for f in $(find ${DGI_PHP_INI_PATH} -type f -name "*.ini") ; do
-  BASENAME=$(basename $f)
-  ln -s $f ${PHP_INI_DIR}/apache2/conf.d/$BASENAME
-  ln -s $f ${PHP_INI_DIR}/cli/conf.d/$BASENAME
-done
-EOS
+ENV PHP_MEMORY_LIMIT=512M
+ENV PHP_POST_MAX_SIZE=2048M
+ENV PHP_UPLOAD_MAX_FILESIZE=2048M
+ENV PHP_MAX_INPUT_VARS=5000
+ENV PHP_MAX_EXECUTION_TIME=30
+ENV PHP_CLI_MEMORY_LIMIT=1G
+ENV PHP_CLI_POST_MAX_SIZE=$PHP_POST_MAX_SIZE
+ENV PHP_CLI_UPLOAD_MAX_FILESIZE=$PHP_UPLOAD_MAX_FILESIZE
+ENV PHP_CLI_MAX_INPUT_VARS=$PHP_MAX_INPUT_VARS
+ENV PHP_CLI_MAX_EXECUTION_TIME=0
+
+COPY --link ./rootfs/etc/php/ $PHP_INI_DIR
+
 # Back out to the original WORKDIR.
 WORKDIR /
 
