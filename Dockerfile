@@ -116,7 +116,7 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
 EOS
 
 # renovate: datasource=github-tags depName=mikefarah/yq
-ARG YQ_VERSION=v4.50.1
+ARG YQ_VERSION=v4.52.2
 ADD --chmod=555 https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_${TARGETOS}_${TARGETARCH} /usr/local/bin/yq
 
 ENV PHP_INI_DIR=/etc/php/$PHP_VERSION
