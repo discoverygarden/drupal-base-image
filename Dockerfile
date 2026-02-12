@@ -1,5 +1,5 @@
 ARG BUILD_DIR=/build
-ARG BASE_IMAGE=debian:12-slim
+ARG BASE_IMAGE=debian:13-slim
 
 FROM $BASE_IMAGE AS debsuryorg-key
 
