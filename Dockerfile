@@ -49,7 +49,7 @@ ENV CLAMAV_PORT=3310
 ENV SOLR_HOME=/var/solr/data
 ENV SOLR_HOCR_PLUGIN_PATH=${SOLR_HOME}/contrib/ocrhighlighting/lib
 
-ENV PHP_VERSION=8.3
+ENV PHP_VERSION=8.4
 ENV DEBIAN_FRONTEND=noninteractive
 
 COPY clear-cache /bin/clear-cache
@@ -123,26 +123,34 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
 EOS
 
 # renovate: datasource=github-tags depName=mikefarah/yq
-ARG YQ_VERSION=v4.48.1
+ARG YQ_VERSION=v4.52.4
 ADD --chmod=555 https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_${TARGETOS}_${TARGETARCH} /usr/local/bin/yq
 
 ENV PHP_INI_DIR=/etc/php/$PHP_VERSION
-ENV DGI_PHP_INI=/etc/php/dgi/99-config.ini
+ARG DGI_PHP_INI_PATH=/etc/php/dgi
+ENV DGI_PHP_INI_PATH=$DGI_PHP_INI_PATH
 
-# Use the DGI_PHP_INI variable directly for copying config
-COPY --link dgi_99-config.ini ${DGI_PHP_INI}
-RUN ln -s ${DGI_PHP_INI} ${PHP_INI_DIR}/apache2/conf.d/99-config.ini \
-  && ln -s ${DGI_PHP_INI} ${PHP_INI_DIR}/cli/conf.d/99-config.ini
+# Use the DGI_PHP_INI_PATH variable directly for copying config
+COPY --link rootfs${DGI_PHP_INI_PATH} ${DGI_PHP_INI_PATH}
+RUN <<EOS
+set -e
+for f in $(find ${DGI_PHP_INI_PATH} -type f -name "*.ini") ; do
+  BASENAME=$(basename $f)
+  ln -s $f ${PHP_INI_DIR}/apache2/conf.d/$BASENAME
+  ln -s $f ${PHP_INI_DIR}/cli/conf.d/$BASENAME
+done
+EOS
 # Back out to the original WORKDIR.
 WORKDIR /
 
 # setup apache2
-COPY --link rootfs/etc/apache2/conf-available/logging.conf /etc/apache2/conf-available/logging.conf
+COPY --link rootfs/etc/apache2/conf-available/ /etc/apache2/conf-available/
 
 RUN <<EOS
 set -e
 a2enconf logging.conf
 chown -R www-data /var/log/apache2
+a2enconf request-limit.conf
 EOS
 
 # disable and enable sites
