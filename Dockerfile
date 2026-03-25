@@ -1,5 +1,5 @@
 ARG BUILD_DIR=/build
-ARG BASE_IMAGE=debian:12-slim
+ARG BASE_IMAGE=debian:13-slim
 
 FROM $BASE_IMAGE AS debsuryorg-key
 
@@ -160,7 +160,7 @@ RUN a2dissite default-ssl.conf \
 COPY --link rootfs/etc/apache2/sites-available/25-80-dgi.conf /etc/apache2/sites-available/
 RUN a2ensite 25-80-dgi.conf
 
-COPY --link rootfs/etc/ImageMagick-6/policy.xml /etc/ImageMagick-6/policy.xml
+COPY --link rootfs/etc/ImageMagick-7/policy.xml /etc/ImageMagick-7/policy.xml
 
 # enable apache2 modules and sites
 RUN a2enmod rewrite \
