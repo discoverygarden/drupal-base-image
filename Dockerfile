@@ -1,5 +1,5 @@
 ARG BUILD_DIR=/build
-ARG BASE_IMAGE=debian:12-slim
+ARG BASE_IMAGE=debian:13-slim
 
 FROM $BASE_IMAGE AS debsuryorg-key
 
@@ -54,9 +54,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 COPY clear-cache /bin/clear-cache
 
-# Use Dockerfile-native mechanisms for PHP repo setup
+# Use Dockerfile-native mechanisms for apt repo setup
 # Procedure adapted from https://packages.sury.org/php/README.txt
 ARG BUILD_DIR
+RUN install -d /usr/share/postgresql-common/pgdg/
+ADD --link --chmod=0555 \
+  --checksum=sha256:0144068502a1eddd2a0280ede10ef607d1ec592ce819940991203941564e8e76 \
+  https://www.postgresql.org/media/keys/ACCC4CF8.asc /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc 
 RUN \
   --mount=type=bind,target=$BUILD_DIR,source=$BUILD_DIR,from=debsuryorg-key \
   dpkg -i $BUILD_DIR/debsuryorg-archive-keyring.deb
@@ -66,8 +70,10 @@ RUN \
 <<EOS
 set -e
 apt-get update
-apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests lsb-release ca-certificates
-echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
+apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends --no-install-suggests ca-certificates
+. /etc/os-release
+echo "deb [signed-by=/usr/share/keyrings/debsuryorg-archive-keyring.gpg] https://packages.sury.org/php/ $VERSION_CODENAME main" > /etc/apt/sources.list.d/php.list
+echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" > /etc/apt/sources.list.d/pgdg.list
 apt-get update
 EOS
 
@@ -85,7 +91,7 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
   openssl \
   sudo \
   unzip \
-  postgresql-client \
+  postgresql-client-16 \
   postgresql-client-common \
   imagemagick \
   poppler-utils \
@@ -112,11 +118,12 @@ apt-get install -y -o Dpkg::Options::="--force-confnew" --no-install-recommends 
   libmemcached-tools \
   php${PHP_VERSION}-intl \
   php${PHP_VERSION}-apcu \
+  php${PHP_VERSION}-soap \
   gh
 EOS
 
 # renovate: datasource=github-tags depName=mikefarah/yq
-ARG YQ_VERSION=v4.52.2
+ARG YQ_VERSION=v4.52.5
 ADD --chmod=555 https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_${TARGETOS}_${TARGETARCH} /usr/local/bin/yq
 
 ENV PHP_INI_DIR=/etc/php/$PHP_VERSION
@@ -151,7 +158,7 @@ RUN a2dissite default-ssl.conf \
 COPY --link rootfs/etc/apache2/sites-available/25-80-dgi.conf /etc/apache2/sites-available/
 RUN a2ensite 25-80-dgi.conf
 
-COPY --link rootfs/etc/ImageMagick-6/policy.xml /etc/ImageMagick-6/policy.xml
+COPY --link rootfs/etc/ImageMagick-7/policy.xml /etc/ImageMagick-7/policy.xml
 
 # enable apache2 modules and sites
 RUN a2enmod rewrite \
