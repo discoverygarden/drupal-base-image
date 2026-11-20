@@ -190,3 +190,13 @@ USER root
 WORKDIR ${DRUPAL_ROOT}
 
 CMD ["/usr/sbin/apachectl", "-D", "FOREGROUND"]
+
+# --------------------------------------
+# Package manifest: prints every installed package to the build log as
+#   DGI-PKG <arch> <type> <name> <version>
+# so security checks can read versions from the image build's job log.
+# Keep this as the last step of the final stage.
+# --------------------------------------
+RUN a=$(uname -m); \
+  dpkg-query -W -f='${Package} ${Version}\n' | sed "s/^/DGI-PKG $a deb /"; \
+  true
